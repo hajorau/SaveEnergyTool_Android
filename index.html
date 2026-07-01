@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SaveEnergy">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a3a1a">
+<title>SaveEnergyTool</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg:       #0f1f0f;
+  --surface:  #182818;
+  --card:     #1e341e;
+  --border:   #2d4d2d;
+  --accent:   #4caf50;
+  --accent2:  #a5d6a7;
+  --text:     #e8f5e9;
+  --muted:    #81a981;
+  --warn:     #ffcc02;
+  --danger:   #e57373;
+  --radius:   14px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f0f7f0;
+    --surface: #dcedc8;
+    --card:    #ffffff;
+    --border:  #b2dfb2;
+    --accent:  #2e7d32;
+    --accent2: #388e3c;
+    --text:    #1b2e1b;
+    --muted:   #4a7a4a;
+    --warn:    #f57f17;
+    --danger:  #c62828;
+  }
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:16px; -webkit-text-size-adjust:100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bot);
+  overscroll-behavior: none;
+}
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-top: calc(12px + var(--safe-top));
+}
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.logo h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+.logo span { font-size: 0.72rem; color: var(--muted); display: block; font-weight: 400; }
+nav { display: flex; gap: 2px; }
+nav button {
+  flex: 1; background: none; border: none;
+  padding: 10px 4px; font-size: 0.72rem; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color .2s, border-color .2s;
+  white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.02em;
+}
+nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+main {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px; padding-bottom: calc(16px + var(--safe-bot));
+}
+.tab { display: none; }
+.tab.active { display: block; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+}
+.card-title {
+  font-size: 0.78rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+}
+label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; margin-top: 12px; }
+label:first-of-type { margin-top: 0; }
+input[type=number], input[type=text], select {
+  width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; font-size: 1rem; color: var(--text);
+  -webkit-appearance: none; appearance: none; transition: border-color .2s;
+  font-family: inherit;
+}
+input[type=number]:focus, input[type=text]:focus, select:focus { outline: none; border-color: var(--accent); }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+.toggle-label { font-size: 0.9rem; }
+.toggle { position: relative; width: 50px; height: 28px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: var(--border); border-radius: 28px; cursor: pointer; transition: background .2s; }
+.slider::before {
+  content: ''; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px;
+  background: white; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+input:checked + .slider { background: var(--accent); }
+input:checked + .slider::before { transform: translateX(22px); }
+.btn {
+  display: block; width: 100%; padding: 15px; border-radius: var(--radius);
+  border: none; font-size: 1rem; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: opacity .15s, transform .1s;
+  letter-spacing: 0.02em;
+}
+.btn:active { opacity: 0.85; transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); font-size: 0.88rem; padding: 11px; margin-top: 8px; }
+.btn-danger { background: var(--danger); color: #fff; font-size: 0.88rem; padding: 11px; margin-top: 8px; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.result-item { background: var(--surface); border-radius: 10px; padding: 12px; text-align: center; }
+.result-value { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.03em; color: var(--accent); display: block; line-height: 1.1; }
+.result-value.big { font-size: 2rem; color: var(--warn); }
+.result-label { font-size: 0.7rem; color: var(--muted); margin-top: 3px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.result-full { background: var(--surface); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.result-full-label { font-size: 0.85rem; color: var(--muted); }
+.result-full-val { font-size: 0.95rem; font-weight: 700; }
+.entry { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; }
+.entry-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.entry-name { font-weight: 700; font-size: 0.95rem; }
+.entry-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.entry-main { font-size: 1.4rem; font-weight: 800; color: var(--warn); letter-spacing: -0.02em; }
+.entry-sub { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+.entry-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.badge { font-size: 0.68rem; padding: 3px 8px; border-radius: 20px; background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+.badge.green { color: var(--accent); border-color: var(--accent); }
+.empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 0.9rem; }
+.empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.info-section { margin-bottom: 20px; }
+.info-section h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+.info-section p { font-size: 0.88rem; line-height: 1.6; color: var(--text); margin-bottom: 8px; }
+.formula-box {
+  background: var(--surface); border-left: 3px solid var(--accent); border-radius: 8px;
+  padding: 10px 12px; font-size: 0.8rem; font-family: 'Menlo', 'Courier New', monospace;
+  color: var(--accent2); margin: 8px 0; overflow-x: auto; white-space: nowrap;
+}
+#toast {
+  position: fixed; bottom: calc(20px + var(--safe-bot)); left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 30px;
+  font-size: 0.88rem; font-weight: 600; transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 999; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <h1>SaveEnergyTool</h1>
+      <span>RLT-Einsparpotenzial · Theaterbetrieb</span>
+    </div>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('rechner',this)">Rechner</button>
+    <button onclick="showTab('ergebnis',this)">Ergebnis</button>
+    <button onclick="showTab('verlauf',this)">Verlauf</button>
+    <button onclick="showTab('info',this)">Info</button>
+  </nav>
+</header>
+
+<main>
+
+<div id="tab-rechner" class="tab active">
+  <div class="card">
+    <div class="card-title">Anlage</div>
+    <label>Bezeichnung der Anlage</label>
+    <input type="text" id="raum" placeholder="z.B. RLT-01 Zuschauerraum" value="">
+  </div>
+
+  <div class="card">
+    <div class="card-title">Luftmenge</div>
+    <label>Nennvolumenstrom V̇ (m³/h)</label>
+    <input type="number" id="vdot" placeholder="z.B. 20000" inputmode="numeric">
+    <div class="toggle-row" style="margin-top:14px;">
+      <span class="toggle-label">Wärmerückgewinnung vorhanden</span>
+      <label class="toggle">
+        <input type="checkbox" id="wrg" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Energiepreise</div>
+    <label>Strompreis (€/kWh)</label>
+    <input type="number" id="strompreis" value="0.28" step="0.01" inputmode="decimal">
+    <label>Wärmepreis (€/kWh)</label>
+    <input type="number" id="waermepreis" value="0.08" step="0.01" inputmode="decimal">
+  </div>
+
+  <div class="card">
+    <div class="card-title">Betrieb</div>
+    <label>Reduktionszeit pro Tag (h/d)</label>
+    <input type="number" id="zeit" value="8" step="0.5" inputmode="decimal">
+    <label>Spieltage pro Jahr</label>
+    <input type="number" id="tage" value="250" inputmode="numeric">
+  </div>
+
+  <button class="btn btn-primary" onclick="berechne()">Einsparpotenzial berechnen →</button>
+</div>
+
+<div id="tab-ergebnis" class="tab">
+  <div id="no-result" class="empty">
+    <div class="empty-icon">📊</div>
+    <p>Noch keine Berechnung vorhanden.<br>Bitte zuerst den Rechner ausfüllen.</p>
+  </div>
+
+  <div id="result-content" style="display:none">
+    <div class="card">
+      <div class="card-title" id="res-anlage">Anlage</div>
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="result-value big" id="res-euro">–</span>
+          <span class="result-label">€ / Jahr</span>
+        </div>
+        <div class="result-item">
+          <span class="result-value" id="res-co2">–</span>
+          <span class="result-label">t CO₂ / Jahr</span>
+        </div>
+        <div class="result-item">
+          <span class="result-value" id="res-waerme-kwh">–</span>
+          <span class="result-label">MWh Wärme / a</span>
+        </div>
+        <div class="result-item">
+          <span class="result-value" id="res-strom-kwh">–</span>
+          <span class="result-label">MWh Strom / a</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Parameter</div>
+      <div class="result-full"><span class="result-full-label">Volumenstrom</span><span class="result-full-val" id="rp-vdot">–</span></div>
+      <div class="result-full"><span class="result-full-label">WRG</span><span class="result-full-val" id="rp-wrg">–</span></div>
+      <div class="result-full"><span class="result-full-label">Strompreis</span><span class="result-full-val" id="rp-strom">–</span></div>
+      <div class="result-full"><span class="result-full-label">Wärmepreis</span><span class="result-full-val" id="rp-waerme">–</span></div>
+      <div class="result-full"><span class="result-full-label">Reduktionszeit</span><span class="result-full-val" id="rp-zeit">–</span></div>
+      <div class="result-full" style="border-top:1px solid var(--border); margin-top:4px; padding-top:12px;"><span class="result-full-label">Spieltage / Jahr</span><span class="result-full-val" id="rp-tage">–</span></div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="speichern()">💾 In Verlauf speichern</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">📤 CSV exportieren</button>
+  </div>
+</div>
+
+<div id="tab-verlauf" class="tab">
+  <div id="verlauf-leer" class="empty">
+    <div class="empty-icon">📋</div>
+    <p>Noch keine Berechnungen gespeichert.</p>
+  </div>
+  <div id="verlauf-liste"></div>
+  <div id="verlauf-actions" style="display:none">
+    <button class="btn btn-secondary" onclick="exportCSV()">📤 Alle als CSV exportieren</button>
+    <button class="btn btn-danger" onclick="clearVerlauf()">🗑 Verlauf löschen</button>
+  </div>
+</div>
+
+<div id="tab-info" class="tab">
+  <div class="card">
+    <div class="info-section">
+      <h3>Über dieses Tool</h3>
+      <p>Berechnet das jährliche Energieeinsparpotenzial durch bedarfsgeführten Betrieb von Raumlufttechnischen Anlagen (RLT) in Theatern und Kultureinrichtungen.</p>
+      <p>Entwickelt im Rahmen der DTHG-Leitfadenarbeit zur energieeffizienten Betriebsführung.</p>
+    </div>
+    <div class="info-section">
+      <h3>Berechnungsgrundlagen</h3>
+      <p><strong>Stromeinsparung</strong> (Ventilatoren, SFP-Wert):</p>
+      <div class="formula-box">P_el = V̇ × SFP / 1000 [kW]<br>SFP = 1.500 W/(m³/s) (Referenz)</div>
+      <p><strong>Wärmeeinsparung</strong> (Heizung/Kühlung):</p>
+      <div class="formula-box">P_th = V̇ × ρ × c_p × ΔT / 3600<br>ΔT = 8 K (ohne WRG: 20 K)<br>ρ = 1.2 kg/m³, c_p = 1.005 kJ/(kg·K)</div>
+      <p><strong>CO₂-Äquivalent</strong> Strom:</p>
+      <div class="formula-box">0.380 kg CO₂/kWh (dt. Strommix)</div>
+    </div>
+    <div class="info-section">
+      <h3>Version</h3>
+      <p>SaveEnergyTool v2.1 · DTHG / H.‑J. Rau · 2026</p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+let lastResult = null;
+let history = [];
+try { history = JSON.parse(localStorage.getItem('se_history') || '[]'); } catch(e) {}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'verlauf') renderVerlauf();
+}
+
+function berechne() {
+  const raum       = document.getElementById('raum').value.trim() || 'Unbenannte Anlage';
+  const vdot       = parseFloat(document.getElementById('vdot').value);
+  const wrg        = document.getElementById('wrg').checked;
+  const strompreis = parseFloat(document.getElementById('strompreis').value);
+  const waermepreis= parseFloat(document.getElementById('waermepreis').value);
+  const zeit       = parseFloat(document.getElementById('zeit').value);
+  const tage       = parseFloat(document.getElementById('tage').value);
+
+  if (!vdot || vdot <= 0) { toast('Bitte Volumenstrom eingeben'); return; }
+
+  const sfp = 1500;
+  const vdot_ms = vdot / 3600;
+  const p_el_nenn = vdot_ms * sfp / 1000;
+  const p_el_einspar = p_el_nenn * 0.875;
+  const strom_kwh_a = p_el_einspar * zeit * tage;
+
+  const rho = 1.2;
+  const cp  = 1.005;
+  const dT  = wrg ? 8 : 20;
+  const p_th = vdot_ms * rho * cp * dT;
+  const waerme_kwh_a = p_th * zeit * tage;
+
+  const euro_a = (strom_kwh_a * strompreis) + (waerme_kwh_a * waermepreis);
+  const co2_t = (strom_kwh_a * 0.380) / 1000;
+
+  lastResult = {
+    ts: new Date().toLocaleDateString('de-AT'),
+    raum, vdot, wrg, strompreis, waermepreis, zeit, tage,
+    strom_kwh_a: Math.round(strom_kwh_a),
+    waerme_kwh_a: Math.round(waerme_kwh_a),
+    euro_a: Math.round(euro_a),
+    co2_t: co2_t.toFixed(2)
+  };
+
+  renderResult(lastResult);
+  showTab('ergebnis', document.querySelectorAll('nav button')[1]);
+  toast('Berechnung abgeschlossen ✓');
+}
+
+function renderResult(r) {
+  document.getElementById('no-result').style.display = 'none';
+  document.getElementById('result-content').style.display = 'block';
+  document.getElementById('res-anlage').textContent   = r.raum;
+  document.getElementById('res-euro').textContent     = r.euro_a.toLocaleString('de-DE') + ' €';
+  document.getElementById('res-co2').textContent      = r.co2_t;
+  document.getElementById('res-waerme-kwh').textContent = (r.waerme_kwh_a/1000).toFixed(1);
+  document.getElementById('res-strom-kwh').textContent  = (r.strom_kwh_a/1000).toFixed(1);
+  document.getElementById('rp-vdot').textContent  = r.vdot.toLocaleString('de-DE') + ' m³/h';
+  document.getElementById('rp-wrg').textContent   = r.wrg ? '✓ Ja' : '✗ Nein';
+  document.getElementById('rp-strom').textContent = r.strompreis.toFixed(2) + ' €/kWh';
+  document.getElementById('rp-waerme').textContent= r.waermepreis.toFixed(2) + ' €/kWh';
+  document.getElementById('rp-zeit').textContent  = r.zeit + ' h/d';
+  document.getElementById('rp-tage').textContent  = r.tage + ' Tage/a';
+}
+
+function speichern() {
+  if (!lastResult) { toast('Keine Berechnung vorhanden'); return; }
+  if (history.length > 0) {
+    const last = history[0];
+    if (last.raum === lastResult.raum && last.euro_a === lastResult.euro_a) {
+      toast('Bereits gespeichert'); return;
+    }
+  }
+  history.unshift({...lastResult});
+  try { localStorage.setItem('se_history', JSON.stringify(history)); } catch(e) {}
+  toast('Gespeichert ✓');
+}
+
+function renderVerlauf() {
+  const liste = document.getElementById('verlauf-liste');
+  const leer  = document.getElementById('verlauf-leer');
+  const acts  = document.getElementById('verlauf-actions');
+  liste.innerHTML = '';
+  if (!history.length) { leer.style.display = 'block'; acts.style.display = 'none'; return; }
+  leer.style.display = 'none';
+  acts.style.display = 'block';
+  history.forEach(h => {
+    const el = document.createElement('div');
+    el.className = 'entry';
+    el.innerHTML = `
+      <div class="entry-header">
+        <div>
+          <div class="entry-name">${h.raum}</div>
+          <div class="entry-date">${h.ts}</div>
+        </div>
+      </div>
+      <div class="entry-main">${h.euro_a.toLocaleString('de-DE')} €/a</div>
+      <div class="entry-sub">${(h.waerme_kwh_a/1000).toFixed(1)} MWh Wärme · ${(h.strom_kwh_a/1000).toFixed(1)} MWh Strom · ${h.co2_t} t CO₂</div>
+      <div class="entry-badges">
+        <span class="badge">${h.vdot.toLocaleString('de-DE')} m³/h</span>
+        <span class="badge">${h.tage} Spieltage</span>
+        <span class="badge">${h.zeit} h/d</span>
+        ${h.wrg ? '<span class="badge green">WRG ✓</span>' : ''}
+      </div>
+    `;
+    liste.appendChild(el);
+  });
+}
+
+function clearVerlauf() {
+  if (!confirm('Verlauf wirklich löschen?')) return;
+  history = [];
+  try { localStorage.removeItem('se_history'); } catch(e) {}
+  renderVerlauf();
+  toast('Verlauf gelöscht');
+}
+
+function exportCSV() {
+  const src = lastResult && document.getElementById('tab-ergebnis').classList.contains('active') ? [lastResult] : history;
+  if (!src.length) { toast('Keine Daten vorhanden'); return; }
+  const hdr = ['Datum','Anlage','V_m3h','WRG','Strom_EUR_kWh','Waerme_EUR_kWh','Reduktion_h_d','Spieltage_a','Waerme_kWh_a','Strom_kWh_a','Einsparung_EUR_a','CO2_t'];
+  const rows = src.map(h => [
+    h.ts, h.raum, h.vdot, h.wrg?'ja':'nein',
+    h.strompreis, h.waermepreis, h.zeit, h.tage,
+    h.waerme_kwh_a, h.strom_kwh_a, h.euro_a, h.co2_t
+  ].join(';'));
+  const csv = '\uFEFF' + [hdr.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'saveenergy_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('CSV exportiert ✓');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+renderVerlauf();
+if (history.length > 0) {
+  lastResult = history[0];
+  renderResult(lastResult);
+}
+</script>
+</body>
+</html>
