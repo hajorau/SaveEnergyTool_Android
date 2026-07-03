@@ -1,10 +1,10 @@
 {
   "name": "SaveEnergyTool",
   "short_name": "SaveEnergy",
-  "id": "/index.html",
+  "id": "/SaveEnergyTool_Android/index.html",
   "description": "RLT-Einsparpotenzial – Theaterbetrieb (DTHG)",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "/SaveEnergyTool_Android/index.html",
+  "scope": "/SaveEnergyTool_Android/",
   "display": "standalone",
   "display_override": ["standalone"],
   "background_color": "#0f1f0f",
@@ -23,7 +23,7 @@
     {
       "name": "Neue Berechnung",
       "short_name": "Rechner",
-      "url": "/index.html#rechner",
+      "url": "/SaveEnergyTool_Android/index.html#rechner",
       "description": "RLT-Anlage berechnen"
     }
   ]
