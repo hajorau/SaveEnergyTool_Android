@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "de.saveenergyteam.saveenergytool",
+        "sha256_cert_fingerprints": ["49:8F:50:81:FD:F5:37:77:B0:77:9E:97:1B:42:36:EF:03:DD:EB:AE:29:C0:F6:81:33:DC:C6:B7:F3:8D:F3:4C"]
+      }
+    }]
